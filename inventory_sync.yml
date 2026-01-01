@@ -1,0 +1,39 @@
+name: Lua Inventory Sync
+
+on:
+  push:
+    paths:
+      - 'inventory.json'      # 替换为你存放库存的文件名
+      - 'data/*.lua'          # 或者监听某个数据文件夹
+
+jobs:
+  run-lua-task:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Lua
+      uses: leafo/gh-actions-lua@v10
+      with:
+        luaVersion: "5.4"     # 你可以根据需要更改版本，如 5.1 或 luajit
+
+    - name: Install Dependencies
+      # 如果你的脚本需要 lua-cjson 或其他库，可以在这里安装
+      run: |
+        # sudo apt-get install -y luarocks
+        # luarocks install lua-cjson
+        echo "Dependencies ready"
+
+    - name: Execute Lua Script
+      run: |
+        lua update_inventory.lua  # 替换为你的脚本文件名
+
+    - name: Auto Commit Changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "chore: 自动同步库存数据 [skip ci]" || exit 0
+        git push
